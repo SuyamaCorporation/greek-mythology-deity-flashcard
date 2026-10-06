@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Greek Mythology Deity Flashcard Deck</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .card-container { perspective: 1200px; }
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
+      transform-style: preserve-3d;
+    }
+    .card-inner.flipped { transform: rotateY(180deg); }
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 1.25rem;
+    }
+    .card-back { transform: rotateY(180deg); }
+    .mastery-pip { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900 py-8 px-4" style="background-image: radial-gradient(ellipse at top, #4c1d95 0%, #1e1b4b 60%, #0f0e1a 100%);">
+  <div class="max-w-2xl mx-auto">
+    <header class="text-center mb-6">
+      <h1 class="text-3xl font-bold text-white mb-1">Greek Mythology Flashcards</h1>
+      <p class="text-purple-300">Deity & Role Study Deck</p>
+    </header>
+
+    <!-- Mode selector -->
+    <div class="flex justify-center gap-2 mb-6" role="tablist" aria-label="Study mode selection">
+      <button id="tab-study" role="tab" aria-selected="true" class="px-4 py-2 rounded-full text-sm font-semibold bg-purple-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-400" aria-controls="panel-study">Study Mode</button>
+      <button id="tab-quiz" role="tab" aria-selected="false" class="px-4 py-2 rounded-full text-sm font-semibold bg-white/10 text-purple-200 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-purple-400" aria-controls="panel-quiz">Quiz Mode</button>
+      <button id="tab-progress" role="tab" aria-selected="false" class="px-4 py-2 rounded-full text-sm font-semibold bg-white/10 text-purple-200 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-purple-400" aria-controls="panel-progress">Progress</button>
+    </div>
+
+    <!-- Study Mode -->
+    <div id="panel-study" role="tabpanel" aria-labelledby="tab-study">
+      <div class="flex items-center justify-between mb-3">
+        <p id="card-counter" class="text-purple-300 text-sm"></p>
+        <div class="flex gap-2">
+          <button id="shuffle-btn" class="text-xs bg-white/10 hover:bg-white/20 text-purple-200 px-3 py-1 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400" aria-label="Shuffle deck">Shuffle</button>
+          <button id="filter-btn" class="text-xs bg-white/10 hover:bg-white/20 text-purple-200 px-3 py-1 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400" aria-label="Show only cards due for review">Due for Review</button>
+        </div>
+      </div>
+
+      <div class="card-container w-full" style="height: 280px;" aria-label="Flashcard — click to flip">
+        <div id="card-inner" class="card-inner cursor-pointer" tabindex="0" role="button" aria-label="Click or press Space to flip card">
+          <div id="card-front" class="card-face bg-gradient-to-br from-yellow-400 to-orange-400 flex flex-col items-center justify-center p-8 shadow-2xl">
+            <p class="text-xs uppercase tracking-widest text-orange-900 opacity-60 mb-3">Greek Name</p>
+            <p id="front-name" class="text-5xl font-bold text-white drop-shadow-lg text-center"></p>
+            <p id="front-roman" class="text-sm text-orange-100 mt-3 opacity-80"></p>
+          </div>
+          <div id="card-back" class="card-face card-back bg-gradient-to-br from-indigo-600 to-purple-700 flex flex-col justify-center p-8 shadow-2xl overflow-auto">
+            <p class="text-xs uppercase tracking-widest text-indigo-200 opacity-70 mb-2">Domain</p>
+            <p id="back-domain" class="text-xl font-bold text-white mb-3"></p>
+            <p class="text-xs uppercase tracking-widest text-indigo-200 opacity-70 mb-1">Symbols</p>
+            <p id="back-symbols" class="text-sm text-indigo-100 mb-3"></p>
+            <p class="text-xs uppercase tracking-widest text-indigo-200 opacity-70 mb-1">Roman Counterpart</p>
+            <p id="back-roman" class="text-sm font-semibold text-yellow-300 mb-3"></p>
+            <p class="text-xs uppercase tracking-widest text-indigo-200 opacity-70 mb-1">Notable Facts</p>
+            <p id="back-facts" class="text-xs text-indigo-200"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between mt-4">
+        <button id="prev-btn" class="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-purple-400" aria-label="Previous card">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+
+        <div class="flex gap-3">
+          <button id="mark-hard-btn" class="px-4 py-2 text-sm font-medium rounded-xl bg-red-500/20 hover:bg-red-500/40 text-red-300 border border-red-500/30 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Mark as hard — review again soon">Hard</button>
+          <button id="mark-ok-btn" class="px-4 py-2 text-sm font-medium rounded-xl bg-yellow-500/20 hover:bg-yellow-500/40 text-yellow-300 border border-yellow-500/30 focus:outline-none focus:ring-2 focus:ring-yellow-400" aria-label="Mark as okay — review in a few days">OK</button>
+          <button id="mark-easy-btn" class="px-4 py-2 text-sm font-medium rounded-xl bg-green-500/20 hover:bg-green-500/40 text-green-300 border border-green-500/30 focus:outline-none focus:ring-2 focus:ring-green-400" aria-label="Mark as easy — mastered">Easy</button>
+        </div>
+
+        <button id="next-btn" class="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-purple-400" aria-label="Next card">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Quiz Mode -->
+    <div id="panel-quiz" role="tabpanel" aria-labelledby="tab-quiz" class="hidden">
+      <div id="quiz-start" class="bg-white/10 rounded-2xl p-6 text-center">
+        <p class="text-purple-200 mb-4">Test your knowledge: given a domain and symbols, name the deity.</p>
+        <button id="start-quiz-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" aria-label="Start quiz">Start Quiz</button>
+      </div>
+      <div id="quiz-active" class="hidden space-y-4">
+        <div class="bg-indigo-900/60 border border-indigo-700 rounded-2xl p-6">
+          <p class="text-xs uppercase tracking-widest text-indigo-300 mb-2">Domain</p>
+          <p id="quiz-domain" class="text-xl font-bold text-white mb-3"></p>
+          <p class="text-xs uppercase tracking-widest text-indigo-300 mb-1">Symbols</p>
+          <p id="quiz-symbols" class="text-sm text-indigo-200"></p>
+        </div>
+        <div id="quiz-options" class="grid grid-cols-2 gap-3" role="group" aria-label="Answer choices"></div>
+        <div id="quiz-feedback" class="hidden rounded-xl p-3 text-sm font-medium text-center" aria-live="polite"></div>
+        <div class="flex justify-between items-center text-purple-300 text-sm">
+          <span id="quiz-score"></span>
+          <button id="quiz-next-btn" class="hidden bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400" aria-label="Next quiz question">Next Question</button>
+        </div>
+      </div>
+      <div id="quiz-done" class="hidden bg-white/10 rounded-2xl p-6 text-center">
+        <p class="text-3xl mb-2" aria-hidden="true">🏆</p>
+        <p id="quiz-final-score" class="text-white text-xl font-bold mb-2"></p>
+        <button id="quiz-restart-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-xl mt-4 focus:outline-none focus:ring-2 focus:ring-purple-400" aria-label="Restart quiz">Play Again</button>
+      </div>
+    </div>
+
+    <!-- Progress Mode -->
+    <div id="panel-progress" role="tabpanel" aria-labelledby="tab-progress" class="hidden">
+      <div class="bg-white/10 rounded-2xl p-6 space-y-3">
+        <h2 class="text-white font-semibold mb-2">Mastery Tracker</h2>
+        <div id="progress-list" class="space-y-2 max-h-96 overflow-y-auto" aria-label="Mastery status for each deity"></div>
+        <button id="reset-progress-btn" class="mt-4 text-xs text-red-400 hover:text-red-300 focus:outline-none focus:underline" aria-label="Reset all progress">Reset All Progress</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const DEITIES = [
+        { name: 'Zeus', roman: 'Jupiter', domain: 'Sky, thunder, king of gods, law and order', symbols: 'Thunderbolt, eagle, oak tree, scales', facts: 'Supreme ruler of Mount Olympus; overthrew his father Cronus.' },
+        { name: 'Hera', roman: 'Juno', domain: 'Marriage, women, queen of gods, childbirth', symbols: 'Peacock, pomegranate, cuckoo, crown', facts: 'Wife and sister of Zeus; fierce protector of marriage.' },
+        { name: 'Poseidon', roman: 'Neptune', domain: 'Sea, earthquakes, storms, horses', symbols: 'Trident, horse, dolphin, bull', facts: 'Ruler of the seas; could cause earthquakes by striking the ground with his trident.' },
+        { name: 'Demeter', roman: 'Ceres', domain: 'Harvest, agriculture, fertility, seasons', symbols: 'Wheat sheaf, cornucopia, torch, poppy', facts: 'Her grief over Persephone\'s abduction causes winter each year.' },
+        { name: 'Athena', roman: 'Minerva', domain: 'Wisdom, war strategy, crafts, justice', symbols: 'Owl, olive tree, shield, spear, Aegis', facts: 'Born fully armored from Zeus\'s head; patron of Athens.' },
+        { name: 'Apollo', roman: 'Apollo', domain: 'Sun, music, poetry, prophecy, healing, arts', symbols: 'Lyre, laurel wreath, silver bow, sun', facts: 'Twin brother of Artemis; god of the Oracle at Delphi.' },
+        { name: 'Artemis', roman: 'Diana', domain: 'Hunt, moon, wilderness, childbirth, chastity', symbols: 'Silver bow and arrow, crescent moon, deer', facts: 'Twin sister of Apollo; protector of young girls and wildlife.' },
+        { name: 'Ares', roman: 'Mars', domain: 'War, bloodlust, violence, courage', symbols: 'Spear, shield, helmet, vulture, dog', facts: 'Son of Zeus and Hera; less respected than Athena in matters of strategy.' },
+        { name: 'Aphrodite', roman: 'Venus', domain: 'Love, beauty, desire, pleasure, procreation', symbols: 'Dove, swan, myrtle, rose, seashell', facts: 'Born from sea foam; her love for Adonis is a famous myth.' },
+        { name: 'Hephaestus', roman: 'Vulcan', domain: 'Fire, forge, craftsmanship, metalworking', symbols: 'Hammer, anvil, tongs, fire, donkey', facts: 'Thrown from Olympus and lamed; divine craftsman who made armor for the gods.' },
+        { name: 'Hermes', roman: 'Mercury', domain: 'Messengers, travel, commerce, thieves, guide of souls', symbols: 'Caduceus, winged sandals, winged helmet, tortoise', facts: 'Psychopomp who guided souls to the Underworld; trickster and inventor of the lyre.' },
+        { name: 'Dionysus', roman: 'Bacchus', domain: 'Wine, festivity, ecstasy, theater, madness', symbols: 'Grapevine, ivy, thyrsus, leopard, mask', facts: 'Twice-born god; dismembered by Titans and reassembled; patron of drama.' },
+        { name: 'Hades', roman: 'Pluto', domain: 'Underworld, dead, riches, darkness', symbols: 'Helm of darkness, bident, key, black ram, Cerberus', facts: 'Received the Underworld after the Titans were defeated; husband of Persephone.' },
+        { name: 'Persephone', roman: 'Proserpina', domain: 'Spring, queen of underworld, vegetation, rebirth', symbols: 'Pomegranate, sheaf of grain, torch, flowers', facts: 'Abducted by Hades; her seasonal return symbolizes spring.' },
+        { name: 'Hestia', roman: 'Vesta', domain: 'Hearth, home, family, domestic life, fire', symbols: 'Hearth, flame, kettle, donkey', facts: 'Eldest child of Cronus; gave up her Olympian seat to Dionysus to maintain peace.' },
+        { name: 'Eros', roman: 'Cupid', domain: 'Love, desire, attraction', symbols: 'Bow and arrow, torch, wings, rose', facts: 'Son of Aphrodite and Ares; his arrows cause irresistible love.' },
+        { name: 'Tyche', roman: 'Fortuna', domain: 'Luck, fortune, fate, prosperity', symbols: 'Cornucopia, wheel of fortune, rudder, blindfold', facts: 'Governed the fortune of cities and individuals; unpredictable by nature.' },
+        { name: 'Nike', roman: 'Victoria', domain: 'Victory, triumph, speed, strength', symbols: 'Wings, laurel wreath, palm branch', facts: 'Divine personification of victory; often depicted with Zeus and Athena.' },
+        { name: 'Hypnos', roman: 'Somnus', domain: 'Sleep, dreams, rest', symbols: 'Poppy, horn of sleep, wings, lotus', facts: 'Twin brother of Thanatos (Death); lived in a cave through which flowed the river Lethe.' },
+        { name: 'Hecate', roman: 'Trivia', domain: 'Magic, witchcraft, night, crossroads, ghosts', symbols: 'Torches, key, dagger, serpent, three-faced form', facts: 'Guardian of crossroads and doorways; associated with the new moon.' }
+      ];
+
+      let deck = [...DEITIES];
+      let currentIdx = 0;
+      let isFlipped = false;
+      let mastery = {};
+      let nextReview = {};
+
+      try {
+        mastery = JSON.parse(localStorage.getItem('gm_mastery') || '{}');
+        nextReview = JSON.parse(localStorage.getItem('gm_next_review') || '{}');
+      } catch (e) {}
+
+      function saveProgress() {
+        try {
+          localStorage.setItem('gm_mastery', JSON.stringify(mastery));
+          localStorage.setItem('gm_next_review', JSON.stringify(nextReview));
+        } catch (e) {}
+      }
+
+      // Tabs
+      const tabs = [
+        { tab: 'tab-study', panel: 'panel-study' },
+        { tab: 'tab-quiz', panel: 'panel-quiz' },
+        { tab: 'tab-progress', panel: 'panel-progress' }
+      ];
+      tabs.forEach(({ tab, panel }) => {
+        document.getElementById(tab).addEventListener('click', () => {
+          tabs.forEach(t => {
+            document.getElementById(t.tab).className = 'px-4 py-2 rounded-full text-sm font-semibold bg-white/10 text-purple-200 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-purple-400';
+            document.getElementById(t.tab).setAttribute('aria-selected', 'false');
+            document.getElementById(t.panel).classList.add('hidden');
+          });
+          document.getElementById(tab).className = 'px-4 py-2 rounded-full text-sm font-semibold bg-purple-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-400';
+          document.getElementById(tab).setAttribute('aria-selected', 'true');
+          document.getElementById(panel).classList.remove('hidden');
+          if (panel === 'panel-progress') renderProgress();
+        });
+      });
+
+      // Study Mode
+      function renderCard() {
+        const deity = deck[currentIdx];
+        document.getElementById('card-counter').textContent = (currentIdx + 1) + ' / ' + deck.length;
+        document.getElementById('front-name').textContent = deity.name;
+        document.getElementById('front-roman').textContent = 'Roman: ' + deity.roman;
+        document.getElementById('back-domain').textContent = deity.domain;
+        document.getElementById('back-symbols').textContent = deity.symbols;
+        document.getElementById('back-roman').textContent = deity.roman;
+        document.getElementById('back-facts').textContent = deity.facts;
+
+        const cardInner = document.getElementById('card-inner');
+        if (isFlipped) { cardInner.classList.remove('flipped'); isFlipped = false; }
+      }
+
+      function flipCard() {
+        const cardInner = document.getElementById('card-inner');
+        isFlipped = !isFlipped;
+        if (isFlipped) cardInner.classList.add('flipped');
+        else cardInner.classList.remove('flipped');
+      }
+
+      document.getElementById('card-inner').addEventListener('click', flipCard);
+      document.getElementById('card-inner').addEventListener('keydown', e => {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipCard(); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); navigate(1); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); navigate(-1); }
+      });
+
+      function navigate(dir) {
+        currentIdx = (currentIdx + dir + deck.length) % deck.length;
+        isFlipped = false;
+        renderCard();
+      }
+
+      document.getElementById('prev-btn').addEventListener('click', () => navigate(-1));
+      document.getElementById('next-btn').addEventListener('click', () => navigate(1));
+
+      document.getElementById('shuffle-btn').addEventListener('click', () => {
+        for (let i = deck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+        currentIdx = 0;
+        isFlipped = false;
+        renderCard();
+      });
+
+      document.getElementById('filter-btn').addEventListener('click', () => {
+        const now = Date.now();
+        const due = DEITIES.filter(d => !nextReview[d.name] || nextReview[d.name] <= now);
+        if (due.length === 0) { alert('No cards due for review! All are marked as easy.'); return; }
+        deck = due;
+        currentIdx = 0;
+        isFlipped = false;
+        renderCard();
+        document.getElementById('filter-btn').textContent = 'Show All (' + DEITIES.length + ')';
+        document.getElementById('filter-btn').removeEventListener('click', arguments.callee);
+        document.getElementById('filter-btn').addEventListener('click', () => {
+          deck = [...DEITIES];
+          currentIdx = 0;
+          renderCard();
+          document.getElementById('filter-btn').textContent = 'Due for Review';
+        });
+      });
+
+      function markCard(level) {
+        const deity = deck[currentIdx];
+        mastery[deity.name] = level;
+        const now = Date.now();
+        const intervals = { hard: 1, ok: 3, easy: 7 };
+        nextReview[deity.name] = now + intervals[level] * 24 * 60 * 60 * 1000;
+        saveProgress();
+        navigate(1);
+      }
+
+      document.getElementById('mark-hard-btn').addEventListener('click', () => markCard('hard'));
+      document.getElementById('mark-ok-btn').addEventListener('click', () => markCard('ok'));
+      document.getElementById('mark-easy-btn').addEventListener('click', () => markCard('easy'));
+
+      // Quiz Mode
+      let quizQueue = [];
+      let quizIdx = 0;
+      let quizCorrect = 0;
+
+      function startQuiz() {
+        quizQueue = [...DEITIES].sort(() => Math.random() - 0.5);
+        quizIdx = 0;
+        quizCorrect = 0;
+        document.getElementById('quiz-start').classList.add('hidden');
+        document.getElementById('quiz-done').classList.add('hidden');
+        document.getElementById('quiz-active').classList.remove('hidden');
+        renderQuizQuestion();
+      }
+
+      function renderQuizQuestion() {
+        const deity = quizQueue[quizIdx];
+        document.getElementById('quiz-domain').textContent = deity.domain;
+        document.getElementById('quiz-symbols').textContent = deity.symbols;
+        document.getElementById('quiz-score').textContent = quizCorrect + ' / ' + quizIdx + ' correct';
+        document.getElementById('quiz-feedback').classList.add('hidden');
+        document.getElementById('quiz-next-btn').classList.add('hidden');
+
+        const wrong = DEITIES.filter(d => d.name !== deity.name).sort(() => Math.random() - 0.5).slice(0, 3);
+        const options = [deity, ...wrong].sort(() => Math.random() - 0.5);
+
+        const container = document.getElementById('quiz-options');
+        container.textContent = '';
+        options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.textContent = opt.name;
+          btn.className = 'px-3 py-3 text-sm font-medium rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 focus:outline-none focus:ring-2 focus:ring-purple-400';
+          btn.setAttribute('aria-label', 'Answer: ' + opt.name);
+          btn.addEventListener('click', () => answerQuiz(opt.name === deity.name, btn, options, deity));
+          container.appendChild(btn);
+        });
+      }
+
+      function answerQuiz(correct, clickedBtn, options, deity) {
+        const container = document.getElementById('quiz-options');
+        container.querySelectorAll('button').forEach(btn => {
+          btn.disabled = true;
+          if (btn.textContent === deity.name) btn.className = btn.className.replace('bg-white/10', 'bg-green-500/40') + ' border-green-400';
+        });
+        if (!correct) clickedBtn.className = clickedBtn.className.replace('bg-white/10', 'bg-red-500/40') + ' border-red-400';
+        if (correct) quizCorrect++;
+        quizIdx++;
+
+        const fb = document.getElementById('quiz-feedback');
+        fb.className = 'rounded-xl p-3 text-sm font-medium text-center ' + (correct ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300');
+        fb.textContent = correct ? 'Correct! ' + deity.name + ' — ' + deity.roman + ' (Roman)' : 'Incorrect. The answer was ' + deity.name + ' (' + deity.roman + ')';
+        fb.classList.remove('hidden');
+        document.getElementById('quiz-score').textContent = quizCorrect + ' / ' + quizIdx + ' correct';
+
+        if (quizIdx >= quizQueue.length) {
+          setTimeout(() => {
+            document.getElementById('quiz-active').classList.add('hidden');
+            document.getElementById('quiz-done').classList.remove('hidden');
+            document.getElementById('quiz-final-score').textContent = quizCorrect + ' / ' + quizQueue.length + ' correct (' + Math.round((quizCorrect / quizQueue.length) * 100) + '%)';
+          }, 1500);
+        } else {
+          document.getElementById('quiz-next-btn').classList.remove('hidden');
+        }
+      }
+
+      document.getElementById('start-quiz-btn').addEventListener('click', startQuiz);
+      document.getElementById('quiz-next-btn').addEventListener('click', renderQuizQuestion);
+      document.getElementById('quiz-restart-btn').addEventListener('click', startQuiz);
+
+      // Progress
+      function renderProgress() {
+        const list = document.getElementById('progress-list');
+        list.textContent = '';
+        const masteryColors = { easy: 'bg-green-500', ok: 'bg-yellow-400', hard: 'bg-red-500', '': 'bg-gray-600' };
+        const masteryLabels = { easy: 'Mastered', ok: 'Learning', hard: 'Needs work', '': 'Not studied' };
+
+        DEITIES.forEach(d => {
+          const level = mastery[d.name] || '';
+          const now = Date.now();
+          const due = nextReview[d.name] ? nextReview[d.name] <= now : true;
+          const row = document.createElement('div');
+          row.className = 'flex items-center justify-between py-2 border-b border-white/10 last:border-0';
+
+          const left = document.createElement('div');
+          const nameEl = document.createElement('span');
+          nameEl.className = 'text-white text-sm font-medium';
+          nameEl.textContent = d.name;
+          const romanEl = document.createElement('span');
+          romanEl.className = 'text-purple-400 text-xs ml-2';
+          romanEl.textContent = '(' + d.roman + ')';
+          left.appendChild(nameEl);
+          left.appendChild(romanEl);
+
+          const right = document.createElement('div');
+          right.className = 'flex items-center gap-2';
+          if (level && !due) {
+            const dueEl = document.createElement('span');
+            dueEl.className = 'text-xs text-purple-400';
+            const daysLeft = Math.ceil((nextReview[d.name] - now) / (24 * 60 * 60 * 1000));
+            dueEl.textContent = daysLeft + 'd';
+            right.appendChild(dueEl);
+          }
+          const pip = document.createElement('span');
+          pip.className = 'mastery-pip ' + (masteryColors[level] || 'bg-gray-600');
+          pip.setAttribute('title', masteryLabels[level] || 'Not studied');
+          pip.setAttribute('aria-label', masteryLabels[level] || 'Not studied');
+          const label = document.createElement('span');
+          label.className = 'text-xs text-purple-300 w-20 text-right';
+          label.textContent = masteryLabels[level];
+          right.appendChild(pip);
+          right.appendChild(label);
+
+          row.appendChild(left);
+          row.appendChild(right);
+          list.appendChild(row);
+        });
+
+        const studied = Object.keys(mastery).length;
+        const mastered = Object.values(mastery).filter(v => v === 'easy').length;
+        const summary = document.createElement('div');
+        summary.className = 'mt-3 pt-3 grid grid-cols-3 gap-2 text-center';
+        [['Studied', studied + '/' + DEITIES.length], ['Mastered', mastered], ['Remaining', DEITIES.length - mastered]].forEach(([label, val]) => {
+          const cell = document.createElement('div');
+          const valEl = document.createElement('p');
+          valEl.className = 'text-white font-bold text-lg';
+          valEl.textContent = val;
+          const lblEl = document.createElement('p');
+          lblEl.className = 'text-purple-400 text-xs';
+          lblEl.textContent = label;
+          cell.appendChild(valEl);
+          cell.appendChild(lblEl);
+          summary.appendChild(cell);
+        });
+        list.appendChild(summary);
+      }
+
+      document.getElementById('reset-progress-btn').addEventListener('click', () => {
+        if (confirm('Reset all mastery progress?')) {
+          mastery = {};
+          nextReview = {};
+          saveProgress();
+          renderProgress();
+        }
+      });
+
+      renderCard();
+    })();
+  </script>
+</body>
+</html>
